@@ -424,14 +424,16 @@ class MetricsCollector(object):
 
 ######################################################################################
         ### pcc add
+        current_task_failure = get_current_tasks_failure()
         current_tasks_failure = GaugeMetricFamily(
             "airflow_current_tasks_failure",
             "Current failed tasks",
             labels=["dag_id", "task_id", "execution_date"],
         )
-        for task in get_current_tasks_failure():
+        print(current_task_failure)
+        for task in current_task_failure:
             current_tasks_failure.add_metric(
-                [task.dag_id, task.task_id, task.execution_date], "1"
+                [task.dag_id, task.task_id,  str(task.execution_date.date())], "1"
             )
         yield current_tasks_failure
 ######################################################################################
