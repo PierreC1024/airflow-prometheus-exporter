@@ -205,7 +205,7 @@ def get_current_tasks_failure():
                     max_execution_dt_query,
                     (TaskFail.dag_id == max_execution_dt_query.c.dag_id)  &
                     (TaskFail.task_id == max_execution_dt_query.c.task_id) &
-                    ("max_execution_dt" == max_execution_dt_query.c.max_execution_dt)
+                    ('max_execution_dt' == max_execution_dt_query.c.max_execution_dt)
                 ).join(
                     DagModel,
                     DagModel.dag_id == TaskFail.dag_id
