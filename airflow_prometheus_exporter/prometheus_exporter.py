@@ -200,16 +200,19 @@ def get_current_tasks_failure():
         )
 
         query = session.query(
-                TaskFail.dag_id,
-                TaskFail.task_id,
-                TaskFail.execution_date,
+                TaskInstance.dag_id,
+                TaskInstance.task_id,
+                TaskInstance.state,
+                TaskInstance.execution_date,
+            ).filter(
+                TaskInstance.state = State.FAILED
             ).join(
                 sq,
                 (sq.c.dag_id == TaskFail.dag_id) &
                 (sq.c.task_id == TaskFail.task_id) &
                 (sq.c.max_execution_dt == TaskFail.execution_date)
             ).join(
-                DagModel, DagModel.dag_id == TaskFail.dag_id
+                DagModel, DagModel.dag_id == TaskInstance.dag_id
             ).filter(
                 DagModel.is_active == True,
                 DagModel.is_paused == False,
