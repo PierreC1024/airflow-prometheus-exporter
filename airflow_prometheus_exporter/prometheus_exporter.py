@@ -213,7 +213,7 @@ def get_current_tasks_failure():
             )
             .join(
                 DagModel,
-                DagModel.dag_id == TaskFail.dag_id
+                DagModel.dag_id == last_tasks_failed.c.dag_id
             )
             .filter(
                 DagModel.is_active == True,
