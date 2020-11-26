@@ -182,7 +182,7 @@ def get_task_failure_counts():
             .group_by(TaskFail.dag_id, TaskFail.task_id,)
         )
 
-
+#### pcc add
 def get_current_tasks_failure():
     """Compute The current List of Tasks Failure"""
     with session_scope(Session) as session:
@@ -222,6 +222,7 @@ def get_current_tasks_failure():
             )
 
         return query
+###
 
 def get_xcom_params(task_id):
     """XCom parameters for matching task_id's for the latest run of a DAG."""
@@ -435,16 +436,18 @@ class MetricsCollector(object):
             )
         yield task_failure_count
 
-        current_tasks_failure = GaugeMetricFamily(
-            "airflow_current_tasks_failure",
-            "Current failed tasks",
-            labels=["dag_id", "task_id", "execution_date"],
-        )
-        for task in get_current_tasks_failure():
-            current_tasks_failure.add_metric(
-                [task.dag_id, task.task_id, task.execution_date], 1
-            )
-        yield current_tasks_failure
+        ### pcc add
+        # current_tasks_failure = GaugeMetricFamily(
+        #     "airflow_current_tasks_failure",
+        #     "Current failed tasks",
+        #     labels=["dag_id", "task_id", "execution_date"],
+        # )
+        # for task in get_current_tasks_failure():
+        #     current_tasks_failure.add_metric(
+        #         [task.dag_id, task.task_id, task.execution_date], "1"
+        #     )
+        # yield current_tasks_failure
+        ###
 
         # Dag Metrics
         dag_info = get_dag_state_info()
