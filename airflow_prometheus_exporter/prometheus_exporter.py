@@ -205,7 +205,7 @@ def get_current_tasks_failure():
                 TaskInstance.state,
                 TaskInstance.execution_date,
             ).filter(
-                TaskInstance.state = State.FAILED
+                TaskInstance.state == State.FAILED
             ).join(
                 sq,
                 (sq.c.dag_id == TaskFail.dag_id) &
