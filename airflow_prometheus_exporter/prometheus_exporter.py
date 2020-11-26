@@ -195,26 +195,26 @@ def get_current_tasks_failure():
                 TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state
             ).subquery()
 
-        last_tasks_failed = session.query(
-                TaskFail.dag_id,
-                TaskFail.task_id,
-                func.max(TaskFail.execution_date).label("max_execution_dt"),
-            ).group_by(
-                TaskFail.dag_id, TaskFail.task_id
-            ).subquery()
+        query = session.query(
+                    TaskFail.dag_id,
+                    TaskFail.task_id,
+                    func.max(TaskFail.execution_date).label("max_execution_dt"),
+                ).group_by(
+                    TaskFail.dag_id, TaskFail.task_id
+                ).join(
+                    max_execution_dt_query,
+                    (TaskFail.dag_id == max_execution_dt_query.c.dag_id)  &
+                    (TaskFail.task_id == max_execution_dt_query.c.task_id) &
+                    ("max_execution_dt" == max_execution_dt_query.c.max_execution_dt)
+                ).join(
+                    DagModel,
+                    DagModel.dag_id == TaskFail.dag_id
+                ).filter(
+                    DagModel.is_active == True,
+                    DagModel.is_paused == False,
+                )
 
-        return last_tasks_failed.join(
-                max_execution_dt_query,
-                (last_tasks_failed.c.dag_id == max_execution_dt_query.c.dag_id)  &
-                (last_tasks_failed.c.task_id == max_execution_dt_query.c.task_id) &
-                (last_tasks_failed.c.max_execution_dt == max_execution_dt_query.c.max_execution_dt)
-            ).all() #join(
-            #     DagModel,
-            #     DagModel.dag_id == last_tasks_failed.c.dag_id
-            # ).filter(
-            #     DagModel.is_active == True,
-            #     DagModel.is_paused == False,
-            # ).all()
+        return query
 ###
 ######################################################################################
 
