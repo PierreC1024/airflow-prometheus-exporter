@@ -187,16 +187,30 @@ def get_task_failure_counts():
 def get_current_tasks_failure():
     """Compute The current List of Tasks Failure"""
     with session_scope(Session) as session:
-        query = session.query(
+        sq = (
+            session.query(
                 TaskInstance.dag_id,
                 TaskInstance.task_id,
-                TaskInstance.state,
                 func.max(TaskInstance.execution_date).label("max_execution_dt"),
-            ).group_by(
-                TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state
-            ).filter(
-                TaskInstance.state == State.FAILED,
-            ).join(
+            )
+            .group_by(
+                TaskInstance.dag_id, TaskInstance.task_id
+            )
+            .subquery()
+        )
+
+        query = session.query(
+                TaskFail.dag_id,
+                TaskFail.task_id,
+                TaskFail.execution_date,
+            )
+            .join(
+                sq,
+                (sq.c.dag_id == TaskFail.dag_id) &
+                (sq.c.task_id == TaskFail.task_id) &
+                (sq.c.max_execution_dt == TaskFail.execution_date)
+            )
+            .join(
                 DagModel, DagModel.dag_id == TaskInstance.dag_id
             ).filter(
                 DagModel.is_active == True,
