@@ -214,7 +214,7 @@ def get_current_tasks_failure():
             ).filter(
                 DagModel.is_active == True,
                 DagModel.is_paused == False,
-            )
+            ).all()
 ###
 ######################################################################################
 
