@@ -209,7 +209,7 @@ def get_current_tasks_failure():
                 (sq.c.task_id == TaskFail.task_id) &
                 (sq.c.max_execution_dt == TaskFail.execution_date)
             ).join(
-                DagModel, DagModel.dag_id == TaskInstance.dag_id
+                DagModel, DagModel.dag_id == TaskFail.dag_id
             ).filter(
                 DagModel.is_active == True,
                 DagModel.is_paused == False,
