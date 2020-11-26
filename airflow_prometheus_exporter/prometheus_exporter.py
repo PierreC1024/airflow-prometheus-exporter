@@ -442,10 +442,9 @@ class MetricsCollector(object):
             "Current failed tasks",
             labels=["dag_id", "task_id", "execution_date"],
         )
-        print(current_task_failure)
         for task in current_task_failure:
             current_tasks_failure.add_metric(
-                [task.dag_id, task.task_id], "1"
+                [task.dag_id, task.task_id], 1.0
             )
         yield current_tasks_failure
 ######################################################################################
