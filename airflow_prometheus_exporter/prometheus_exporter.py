@@ -208,9 +208,9 @@ def get_current_tasks_failure():
                 TaskInstance.state == State.FAILED
             ).join(
                 sq,
-                (sq.c.dag_id == TaskFail.dag_id) &
-                (sq.c.task_id == TaskFail.task_id) &
-                (sq.c.max_execution_dt == TaskFail.execution_date)
+                (sq.c.dag_id == TaskInstance.dag_id) &
+                (sq.c.task_id == TaskInstance.task_id) &
+                (sq.c.max_execution_dt == TaskInstance.execution_date)
             ).join(
                 DagModel, DagModel.dag_id == TaskInstance.dag_id
             ).filter(
