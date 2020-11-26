@@ -198,7 +198,7 @@ def get_current_tasks_failure():
                 TaskInstance.state == State.FAILED,
             ).subquery()
 
-        query = session.query(DagModel.dag_id).join(
+        query = session.query(DagModel.dag_id, DagModel.task_id).join(
                     last_failed_tasks_query,
                     DagModel.dag_id == last_failed_tasks_query.c.dag_id
                 ).filter(
@@ -433,7 +433,7 @@ class MetricsCollector(object):
         print(current_task_failure)
         for task in current_task_failure:
             current_tasks_failure.add_metric(
-                [task.dag_id, task.task_id,  str(task.execution_date.date())], "1"
+                [task.dag_id, task.task_id], "1"
             )
         yield current_tasks_failure
 ######################################################################################
