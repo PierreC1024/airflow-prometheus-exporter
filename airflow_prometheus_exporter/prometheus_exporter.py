@@ -437,18 +437,19 @@ class MetricsCollector(object):
             )
         yield task_failure_count
 
+######################################################################################
         ### pcc add
-        # current_tasks_failure = GaugeMetricFamily(
-        #     "airflow_current_tasks_failure",
-        #     "Current failed tasks",
-        #     labels=["dag_id", "task_id", "execution_date"],
-        # )
-        # for task in get_current_tasks_failure():
-        #     current_tasks_failure.add_metric(
-        #         [task.dag_id, task.task_id, task.execution_date], "1"
-        #     )
-        # yield current_tasks_failure
-        ###
+        current_tasks_failure = GaugeMetricFamily(
+            "airflow_current_tasks_failure",
+            "Current failed tasks",
+            labels=["dag_id", "task_id", "execution_date"],
+        )
+        for task in get_current_tasks_failure():
+            current_tasks_failure.add_metric(
+                [task.dag_id, task.task_id, task.execution_date], "1"
+            )
+        yield current_tasks_failure
+######################################################################################
 
         # Dag Metrics
         dag_info = get_dag_state_info()
