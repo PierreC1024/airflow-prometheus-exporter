@@ -186,35 +186,36 @@ def get_task_failure_counts():
 def get_current_tasks_failure():
     """Compute The current List of Tasks Failure"""
     with session_scope(Session) as session:
-        max_execution_dt_query = (
-            session.query(
+        max_execution_dt_query = session.query(
                 TaskInstance.dag_id,
-                TaskInstance.task_id
+                TaskInstance.task_id,
                 func.max(TaskInstance.execution_date).label("max_execution_dt"),
-            )
-            .group_by(
+            ).group_by(
                 TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state
-            )
-            .subquery()
+            ).subquery()
 
         last_tasks_failed = session.query(
                 TaskFail.dag_id,
                 TaskFail.task_id,
-                func.max(TaskInstance.execution_date).label("max_execution_dt"),
-            )
-            .group_by(
-                TaskInstance.dag_id, TaskInstance.task_id
-            )
-            .subquery()
+                func.max(TaskFail.execution_date).label("max_execution_dt"),
+            ).group_by(
+                TaskFail.dag_id, TaskFail.task_id
+            ).subquery()
 
-        query = last_tasks_failed.join(
-            max_execution_dt_query,
-            and_(
-                (last_tasks_failed.c.dag_id == max_execution_dt_query.c.dag_id),
-                (last_tasks_failed.c.task_id == max_execution_dt_query.c.task_id),
-                (last_tasks_failed.c.max_execution_dt == max_execution_dt_query.c.max_execution_dt),
+        query = (
+            last_tasks_failed
+            .join(
+                max_execution_dt_query,
+                and_(
+                    (last_tasks_failed.c.dag_id == max_execution_dt_query.c.dag_id),
+                    (last_tasks_failed.c.task_id == max_execution_dt_query.c.task_id),
+                    (last_tasks_failed.c.max_execution_dt == max_execution_dt_query.c.max_execution_dt),
+                )
             )
-            .join(DagModel, DagModel.dag_id == TaskFail.dag_id)
+            .join(
+                DagModel,
+                DagModel.dag_id == TaskFail.dag_id
+            )
             .filter(
                 DagModel.is_active == True,
                 DagModel.is_paused == False,
