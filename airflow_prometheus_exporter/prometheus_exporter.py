@@ -210,7 +210,6 @@ def get_current_tasks_failure():
                 (last_tasks_failed.c.dag_id == max_execution_dt_query.c.dag_id)  &
                 (last_tasks_failed.c.task_id == max_execution_dt_query.c.task_id) &
                 (last_tasks_failed.c.max_execution_dt == max_execution_dt_query.c.max_execution_dt)
-                )
             )
             .join(
                 DagModel,
@@ -220,6 +219,7 @@ def get_current_tasks_failure():
                 DagModel.is_active == True,
                 DagModel.is_paused == False,
             )
+        )
 
         return query
 ###
