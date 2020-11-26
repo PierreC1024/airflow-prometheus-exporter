@@ -200,7 +200,7 @@ def get_current_tasks_failure():
 
         query = session.query(DagModel.dag_id).join(
                     last_failed_tasks_query,
-                    DagModel.dag_id == last_failed_tasks_query.dag_id
+                    DagModel.dag_id == last_failed_tasks_query.c.dag_id
                 ).filter(
                     DagModel.is_active == True,
                     DagModel.is_paused == False,
