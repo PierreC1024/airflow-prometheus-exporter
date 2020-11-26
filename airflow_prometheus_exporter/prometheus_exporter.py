@@ -183,6 +183,45 @@ def get_task_failure_counts():
         )
 
 
+def get_current_tasks_failure():
+    """Compute The current List of Tasks Failure"""
+    with session_scope(Session) as session:
+        max_execution_dt_query = (
+            session.query(
+                TaskInstance.dag_id,
+                TaskInstance.task_id
+                func.max(TaskInstance.execution_date).label("max_execution_dt"),
+            )
+            .group_by(
+                TaskInstance.dag_id, TaskInstance.task_id, TaskInstance.state
+            )
+            .subquery()
+
+        last_tasks_failed = session.query(
+                TaskFail.dag_id,
+                TaskFail.task_id,
+                func.max(TaskInstance.execution_date).label("max_execution_dt"),
+            )
+            .group_by(
+                TaskInstance.dag_id, TaskInstance.task_id
+            )
+            .subquery()
+
+        query = last_tasks_failed.join(
+            max_execution_dt_query,
+            and_(
+                (last_tasks_failed.c.dag_id == max_execution_dt_query.c.dag_id),
+                (last_tasks_failed.c.task_id == max_execution_dt_query.c.task_id),
+                (last_tasks_failed.c.max_execution_dt == max_execution_dt_query.c.max_execution_dt),
+            )
+            .join(DagModel, DagModel.dag_id == TaskFail.dag_id)
+            .filter(
+                DagModel.is_active == True,
+                DagModel.is_paused == False,
+            )
+
+        return query
+
 def get_xcom_params(task_id):
     """XCom parameters for matching task_id's for the latest run of a DAG."""
     with session_scope(Session) as session:
@@ -394,6 +433,17 @@ class MetricsCollector(object):
                 [task.dag_id, task.task_id], task.count
             )
         yield task_failure_count
+
+        current_tasks_failure = GaugeMetricFamily(
+            "airflow_current_tasks_failure",
+            "Current failed tasks",
+            labels=["dag_id", "task_id", "execution_date"],
+        )
+        for task in get_current_tasks_failure():
+            current_tasks_failure.add_metric(
+                [task.dag_id, task.task_id, task.execution_date], 1
+            )
+        yield current_tasks_failure
 
         # Dag Metrics
         dag_info = get_dag_state_info()
